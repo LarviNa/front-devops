@@ -62,4 +62,6 @@ jobs:
             --name frontend-app \
             --restart unless-stopped \
             -p 80:5000 \
+            -e BACKEND_URL=http://${{ secrets.EC2_HOST_BACKEND }}:3000 \
+            -e SECRET_KEY=${{ secrets.FLASK_SECRET_KEY }} \
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
