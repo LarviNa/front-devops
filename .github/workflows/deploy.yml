@@ -22,7 +22,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # Frecuente en AWS Academy
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Iniciar sesión en Amazon ECR
@@ -46,22 +46,22 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          # Autenticarse en ECR en la instancia EC2
+          # Autenticarse en ECR
           aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
           
-          # Detener y eliminar contenedor anterior si existe
+          # Limpiar contenedor anterior
           docker stop frontend-app || true
           docker rm frontend-app || true
           
-          # Descargar nueva imagen
+          # Descargar imagen nueva
           docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
           
-          # Ejecutar el nuevo contenedor (Conectado a la red de backend si es necesario o exponiendo puerto)
-          # Aquí mapeamos el puerto 80 del host al 5000 del contenedor
+          # Ejecutar contenedor con variables de entorno inyectadas
+          # Esto soluciona el error 'Invalid URL' y el 'no secret key set'
           docker run -d \
             --name frontend-app \
             --restart unless-stopped \
             -p 80:5000 \
             -e BACKEND_URL=http://${{ secrets.EC2_HOST_BACKEND }}:3000 \
-            -e SECRET_KEY=${{ secrets.FLASK_SECRET_KEY }} \
+            -e SECRET_KEY=Innovatech2024* \
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
